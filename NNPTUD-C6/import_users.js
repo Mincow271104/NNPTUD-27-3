@@ -1,23 +1,20 @@
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const ExcelJS = require('exceljs');
 
-// Cấu hình nodemailer transporter sử dụng Mailtrap theo yêu cầu
+// Cấu hình nodemailer transporter sử dụng Mailtrap
 const transporter = nodemailer.createTransport({
     host: "sandbox.smtp.mailtrap.io",
     port: 2525,
     auth: {
-        user: "6a8e2e9654b287", // Thay bằng username Mailtrap của bạn
-        pass: "1993b84301587f"  // Thay bằng password Mailtrap của bạn
+        user: "6a8e2e9654b287",
+        pass: "1993b84301587f"
     }
 });
 
-// Hàm tạo random chuỗi dài 16 kí tự
-const generatePassword = () => {
-    return crypto.randomBytes(8).toString('hex'); // Tạo ra chuỗi hex dài 16 ký tự
-};
+const generatePassword = () => crypto.randomBytes(8).toString('hex');
 
-// Hàm gửi email
-const sendPasswordEmail = async (email, username, password) => {
+const sendPasswordEmail = async (email, password) => {
     const mailOptions = {
         from: '"Hệ thống Admin" <admin@yourdomain.com>',
         to: email,
@@ -27,150 +24,60 @@ const sendPasswordEmail = async (email, username, password) => {
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`[Thành công] Đã gửi thông tin tài khoản cho: ${username} (${email})`);
+        console.log(`[Thành công] Đã gửi thông tin cho: ${email}`);
     } catch (error) {
-        console.error(`[Thất bại] Lỗi gửi email cho: ${username} (${email}) - ${error.message}`);
+        console.error(`[Thất bại] Lỗi gửi email cho: ${email} - ${error.message}`);
     }
 };
 
-const rawData = `
-user01	user01@haha.com
-user02	user02@haha.com
-user03	user03@haha.com
-user04	user04@haha.com
-user05	user05@haha.com
-user06	user06@haha.com
-user07	user07@haha.com
-user08	user08@haha.com
-user09	user09@haha.com
-user10	user10@haha.com
-user11	user11@haha.com
-user12	user12@haha.com
-user13	user13@haha.com
-user14	user14@haha.com
-user15	user15@haha.com
-user16	user16@haha.com
-user17	user17@haha.com
-user18	user18@haha.com
-user19	user19@haha.com
-user20	user20@haha.com
-user21	user21@haha.com
-user22	user22@haha.com
-user23	user23@haha.com
-user24	user24@haha.com
-user25	user25@haha.com
-user26	user26@haha.com
-user27	user27@haha.com
-user28	user28@haha.com
-user29	user29@haha.com
-user30	user30@haha.com
-user31	user31@haha.com
-user32	user32@haha.com
-user33	user33@haha.com
-user34	user34@haha.com
-user35	user35@haha.com
-user36	user36@haha.com
-user37	user37@haha.com
-user38	user38@haha.com
-user39	user39@haha.com
-user40	user40@haha.com
-user41	user41@haha.com
-user42	user42@haha.com
-user43	user43@haha.com
-user44	user44@haha.com
-user45	user45@haha.com
-user46	user46@haha.com
-user47	user47@haha.com
-user48	user48@haha.com
-user49	user49@haha.com
-user50	user50@haha.com
-user51	user51@haha.com
-user52	user52@haha.com
-user53	user53@haha.com
-user54	user54@haha.com
-user55	user55@haha.com
-user56	user56@haha.com
-user57	user57@haha.com
-user58	user58@haha.com
-user59	user59@haha.com
-user60	user60@haha.com
-user61	user61@haha.com
-user62	user62@haha.com
-user63	user63@haha.com
-user64	user64@haha.com
-user65	user65@haha.com
-user66	user66@haha.com
-user67	user67@haha.com
-user68	user68@haha.com
-user69	user69@haha.com
-user70	user70@haha.com
-user71	user71@haha.com
-user72	user72@haha.com
-user73	user73@haha.com
-user74	user74@haha.com
-user75	user75@haha.com
-user76	user76@haha.com
-user77	user77@haha.com
-user78	user78@haha.com
-user79	user79@haha.com
-user80	user80@haha.com
-user81	user81@haha.com
-user82	user82@haha.com
-user83	user83@haha.com
-user84	user84@haha.com
-user85	user85@haha.com
-user86	user86@haha.com
-user87	user87@haha.com
-user88	user88@haha.com
-user89	user89@haha.com
-user90	user90@haha.com
-user91	user91@haha.com
-user92	user92@haha.com
-user93	user93@haha.com
-user94	user94@haha.com
-user95	user95@haha.com
-user96	user96@haha.com
-user97	user97@haha.com
-user98	user98@haha.com
-user99	user99@haha.com
-`.trim();
+const processUsersFromExcel = async () => {
+    const filePath = 'c:\\WORK\\NNPTDUM-27-3\\user.xlsx';
+    console.log(`Đang phân tích dữ liệu từ Excel: ${filePath}`);
 
-const processUsers = async () => {
-    // Tách theo từng dòng
-    const lines = rawData.split('\n');
-
-    for (const line of lines) {
-        if (!line.trim()) continue;
-
-        // Tách dòng bằng khoảng trắng (tab hoặc dấu cách)
-        const parts = line.trim().split(/\s+/);
-        if (parts.length >= 2) {
-            const username = parts[0];
-            const email = parts[1];
-            
-            const password = generatePassword();
-            const role = 'user';
-
-            // Đối tượng sinh ra
-            const userRecord = {
-                username,
-                email,
-                password,
-                role
-            };
-
-            // Vì chỉ cần parse và gửi email password (không lưu db)
-            console.log(`Đang chạy gửi email cho: ${username}...`);
-            await sendPasswordEmail(email, username, password);
-
-            // Tạm dừng một chút giữa các lần gửi (tùy chọn) để tránh quá tải kết nối với Mailtrap
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
+    const workbook = new ExcelJS.Workbook();
+    try {
+        await workbook.xlsx.readFile(filePath);
+    } catch (err) {
+        console.error("Không thể đọc file Excel. Lỗi:", err.message);
+        return;
     }
 
-    console.log("Hoàn thành quá trình giả lập import và gửi email qua Mailtrap.");
+    const worksheet = workbook.getWorksheet(1);
+    if (!worksheet) {
+        console.error("File Excel không có sheet nào.");
+        return;
+    }
+
+    // Duyệt từng dòng bắt đầu từ dòng 1
+    for (let i = 1; i <= worksheet.rowCount; i++) {
+        const row = worksheet.getRow(i);
+        
+        let username = row.getCell(1).text;
+        let email = row.getCell(2).text;
+
+        // Xử lý an toàn nếu ô trống
+        username = username ? username.trim() : '';
+        email = email ? email.trim() : '';
+
+        // Bỏ qua dòng trống hoặc dòng không có email
+        if (!email) continue;
+        
+        // Nhận diện dòng tiêu đề (header) để bỏ qua
+        if (email.toLowerCase() === 'email') continue;
+
+        const password = generatePassword();
+        const role = 'user'; // Đánh dấu cứng role theo yêu cầu
+
+        console.log(`Đang chạy gửi email cho: ${username} (${email})...`);
+        await sendPasswordEmail(email, password);
+
+        // Chặn 0.5s giữa mỗi lần gửi để không bị Mailtrap chặn rate-limit
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    console.log("Hoàn thành quá trình khởi tạo cấu hình và gửi email qua Mailtrap từ file Excel.");
 };
 
-processUsers().catch(err => {
+processUsersFromExcel().catch(err => {
     console.error("Có lỗi xảy ra:", err);
 });
